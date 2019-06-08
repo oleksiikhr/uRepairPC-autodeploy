@@ -1,0 +1,6 @@
+{
+  "secret": "",
+  "addr": "0.0.0.0:4000",
+  "dir": "",
+  "websocketPort": "3000"
+}
