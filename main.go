@@ -112,13 +112,13 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 
 	switch pullRequest.Repository.Name {
 	case "web":
-		handleWebRep("web")
+		handleWebRep()
 		break
 	case "server":
-		handleServerRep("server")
+		handleServerRep()
 		break
 	case "websocket":
-		handleWebsocketRep("server")
+		handleWebsocketRep()
 		break
 	default:
 		fmt.Println("[Handle Repository] Not Supported:", pullRequest.Repository.Name)
@@ -126,27 +126,27 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 }
 
 // uRepairPC - Web
-func handleWebRep(name string) {
-	runCmd(name, "npm", "ci")
-	runCmd(name, "npm", "run", "build")
+func handleWebRep() {
+	runCmd("web", "npm", "ci")
+	runCmd("web", "npm", "run", "build")
 }
 
 // uRepairPC - Websocket
-func handleWebsocketRep(name string) {
-	runCmd(name, "fuser", "-k", viper.GetString("websocketPort")+"/tcp")
-	runCmd(name, "npm", "ci")
-	runCmd(name, "npm", "run", "build")
-	runCmd(name, "npm", "run", "prod")
+func handleWebsocketRep() {
+	runCmd("websocket", "fuser", "-k", viper.GetString("websocketPort")+"/tcp")
+	runCmd("websocket", "npm", "ci")
+	runCmd("websocket", "npm", "run", "build")
+	runCmd("websocket", "npm", "run", "prod")
 }
 
 // uRepairPC - Server
-func handleServerRep(name string) {
-	runCmd(name, "composer", "install", "--optimize-autoloader", "--no-dev")
-	runCmd(name, "php", "artisan", "cache:clear")
-	runCmd(name, "php", "artisan", "config:clear")
-	runCmd(name, "php", "artisan", "migrate:refresh", "--force")
-	runCmd(name, "php", "artisan", "db:seed", "--force")
-	runCmd(name, "php", "artisan", "config:cache")
+func handleServerRep() {
+	runCmd("server", "composer", "install", "--optimize-autoloader", "--no-dev")
+	runCmd("server", "php", "artisan", "cache:clear")
+	runCmd("server", "php", "artisan", "config:clear")
+	runCmd("server", "php", "artisan", "migrate:refresh", "--force")
+	runCmd("server", "php", "artisan", "db:seed", "--force")
+	runCmd("server", "php", "artisan", "config:cache")
 }
 
 // Helper function for console command
