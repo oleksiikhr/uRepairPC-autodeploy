@@ -85,7 +85,8 @@ func githubEventHandler(w http.ResponseWriter, r *http.Request) {
 
 	case github.PullRequestPayload:
 		pullRequest := payload.(github.PullRequestPayload)
-		if pullRequest.Action == "closed" && pullRequest.PullRequest.Merged {
+		if pullRequest.Action == "closed" && pullRequest.PullRequest.Merged &&
+			pullRequest.PullRequest.Base.Ref == pullRequest.Repository.DefaultBranch {
 			go pullRequestMerged(&pullRequest)
 			w.Write([]byte("merged"))
 			return
