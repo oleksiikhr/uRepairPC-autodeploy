@@ -13,6 +13,12 @@ import (
 
 var hook *github.Webhook
 
+const (
+	RepWebsocket = "websocket"
+	RepServer    = "server"
+	RepWeb       = "web"
+)
+
 func main() {
 	// Init Viper - Get data from the file
 	err := initViper()
@@ -111,14 +117,14 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 	}
 
 	switch pullRequest.Repository.Name {
-	case "web":
-		handleWebRep("web")
+	case RepWeb:
+		handleWebRep()
 		break
-	case "server":
-		handleServerRep("server")
+	case RepServer:
+		handleServerRep()
 		break
-	case "websocket":
-		handleWebsocketRep("server")
+	case RepWebsocket:
+		handleWebsocketRep()
 		break
 	default:
 		fmt.Println("[Handle Repository] Not Supported:", pullRequest.Repository.Name)
@@ -126,27 +132,27 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 }
 
 // uRepairPC - Web
-func handleWebRep(name string) {
-	runCmd(name, "npm", "ci")
-	runCmd(name, "npm", "run", "build")
+func handleWebRep() {
+	runCmd(RepWeb, "npm", "ci")
+	runCmd(RepWeb, "npm", "run", "build")
 }
 
 // uRepairPC - Websocket
-func handleWebsocketRep(name string) {
-	runCmd(name, "fuser", "-k", viper.GetString("websocketPort")+"/tcp")
-	runCmd(name, "npm", "ci")
-	runCmd(name, "npm", "run", "build")
-	runCmd(name, "npm", "run", "prod")
+func handleWebsocketRep() {
+	runCmd(RepWebsocket, "fuser", "-k", viper.GetString("websocketPort")+"/tcp")
+	runCmd(RepWebsocket, "npm", "ci")
+	runCmd(RepWebsocket, "npm", "run", "build")
+	runCmd(RepWebsocket, "npm", "run", "prod")
 }
 
 // uRepairPC - Server
-func handleServerRep(name string) {
-	runCmd(name, "composer", "install", "--optimize-autoloader", "--no-dev")
-	runCmd(name, "php", "artisan", "cache:clear")
-	runCmd(name, "php", "artisan", "config:clear")
-	runCmd(name, "php", "artisan", "migrate:refresh", "--force")
-	runCmd(name, "php", "artisan", "db:seed", "--force")
-	runCmd(name, "php", "artisan", "config:cache")
+func handleServerRep() {
+	runCmd(RepServer, "composer", "install", "--optimize-autoloader", "--no-dev")
+	runCmd(RepServer, "php", "artisan", "cache:clear")
+	runCmd(RepServer, "php", "artisan", "config:clear")
+	runCmd(RepServer, "php", "artisan", "migrate:refresh", "--force")
+	runCmd(RepServer, "php", "artisan", "db:seed", "--force")
+	runCmd(RepServer, "php", "artisan", "config:cache")
 }
 
 // Helper function for console command
