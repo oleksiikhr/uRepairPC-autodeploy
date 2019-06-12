@@ -37,7 +37,13 @@ func main() {
 
 	// Run server
 	fmt.Println("Run:", viper.GetString("addr"))
-	if err := http.ListenAndServe(viper.GetString("addr"), nil); err != nil {
+	if viper.GetBool("ssl") {
+		err = http.ListenAndServeTLS(viper.GetString("addr"), viper.GetString("sslCrt"), viper.GetString("sslKey"), nil)
+	} else {
+		err = http.ListenAndServe(viper.GetString("addr"), nil)
+	}
+
+	if err != nil {
 		panic(err)
 	}
 }
@@ -54,6 +60,7 @@ func initViper() error {
 	viper.SetDefault("dir", filepath.Dir(ex))
 	viper.SetDefault("secret", "")
 	viper.SetDefault("websocketPort", "3000")
+	viper.SetDefault("ssl", false)
 
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("$HOME/.urepairpc")
