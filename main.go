@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,17 +9,22 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/go-redis/redis"
 	"github.com/robfig/cron"
 	"github.com/spf13/viper"
 	"gopkg.in/go-playground/webhooks.v5/github"
 )
 
-var hook *github.Webhook
-
 const (
+	RedisChannel = "autodeploy"
 	RepWebsocket = "websocket"
 	RepServer    = "server"
 	RepWeb       = "web"
+)
+
+var (
+	redisClient *redis.Client
+	hook        *github.Webhook
 )
 
 func main() {
@@ -42,6 +48,9 @@ func main() {
 		handleServerRep()
 	})
 	c.Start()
+
+	// Redis
+	redisClient = redis.NewClient(&redis.Options{})
 
 	// Route
 	http.HandleFunc("/", githubEventHandler)
@@ -152,26 +161,32 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 
 // uRepairPC - Web
 func handleWebRep() {
+	redisPublishStatus(RepWeb, true)
 	runCmd(RepWeb, "npm", "ci")
 	runCmd(RepWeb, "npm", "run", "build")
+	redisPublishStatus(RepWeb, false)
 }
 
 // uRepairPC - Websocket
 func handleWebsocketRep() {
+	redisPublishStatus(RepWebsocket, true)
 	runCmd(RepWebsocket, "fuser", "-k", viper.GetString("websocketPort")+"/tcp")
 	runCmd(RepWebsocket, "npm", "ci")
 	runCmd(RepWebsocket, "npm", "run", "build")
 	runCmd(RepWebsocket, "npm", "run", "prod")
+	// redis false on reconnect to the websocket
 }
 
 // uRepairPC - Server
 func handleServerRep() {
+	redisPublishStatus(RepServer, true)
 	runCmd(RepServer, "composer", "install", "--optimize-autoloader")
 	runCmd(RepServer, "php", "artisan", "cache:clear")
 	runCmd(RepServer, "php", "artisan", "config:clear")
 	runCmd(RepServer, "php", "artisan", "migrate:refresh", "--force")
 	runCmd(RepServer, "php", "artisan", "db:seed", "--force")
 	runCmd(RepServer, "php", "artisan", "config:cache")
+	redisPublishStatus(RepServer, false)
 }
 
 // Helper function for console command
@@ -185,4 +200,14 @@ func runCmd(repositoryName string, commands ...string) bool {
 	}
 
 	return true
+}
+
+func redisPublishStatus(repositoryName string, process bool) {
+	data, _ := json.Marshal(map[string]interface{}{
+		"event":   "autodeploy.status",
+		"name":    repositoryName,
+		"process": process,
+	})
+
+	redisClient.Publish(RedisChannel+"."+repositoryName, data)
 }
