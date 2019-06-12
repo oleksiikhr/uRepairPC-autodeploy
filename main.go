@@ -148,7 +148,7 @@ func handleWebsocketRep() {
 
 // uRepairPC - Server
 func handleServerRep() {
-	runCmd(RepServer, "composer", "install", "--optimize-autoloader", "--no-dev")
+	runCmd(RepServer, "composer", "install", "--optimize-autoloader")
 	runCmd(RepServer, "php", "artisan", "cache:clear")
 	runCmd(RepServer, "php", "artisan", "config:clear")
 	runCmd(RepServer, "php", "artisan", "migrate:refresh", "--force")
