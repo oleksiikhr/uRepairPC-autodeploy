@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
-	"gopkg.in/go-playground/webhooks.v5/github"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/robfig/cron"
+	"github.com/spf13/viper"
+	"gopkg.in/go-playground/webhooks.v5/github"
 )
 
 var hook *github.Webhook
@@ -31,6 +33,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Cron
+	c := cron.New()
+	c.AddFunc("@every 6h", func() {
+		// Clear all data every 6 hours (DB, other)
+		fmt.Println("[CRON] refresh server")
+		handleServerRep()
+	})
+	c.Start()
 
 	// Route
 	http.HandleFunc("/", githubEventHandler)
