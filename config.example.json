@@ -1,6 +1,9 @@
 {
   "secret": "",
   "addr": "0.0.0.0:4000",
+  "ssl": false,
+  "sslCrt": "",
+  "sslKey": "",
   "dir": "",
   "websocketPort": "3000"
 }

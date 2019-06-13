@@ -1,17 +1,31 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/spf13/viper"
-	"gopkg.in/go-playground/webhooks.v5/github"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/go-redis/redis"
+	"github.com/robfig/cron"
+	"github.com/spf13/viper"
+	"gopkg.in/go-playground/webhooks.v5/github"
 )
 
-var hook *github.Webhook
+const (
+	RedisChannel = "autodeploy"
+	RepWebsocket = "websocket"
+	RepServer    = "server"
+	RepWeb       = "web"
+)
+
+var (
+	redisClient *redis.Client
+	hook        *github.Webhook
+)
 
 func main() {
 	// Init Viper - Get data from the file
@@ -26,12 +40,30 @@ func main() {
 		panic(err)
 	}
 
+	// Cron
+	c := cron.New()
+	c.AddFunc("@every 6h", func() {
+		// Clear all data every 6 hours (DB, other)
+		fmt.Println("[CRON] refresh server")
+		handleServerRep()
+	})
+	c.Start()
+
+	// Redis
+	redisClient = redis.NewClient(&redis.Options{})
+
 	// Route
 	http.HandleFunc("/", githubEventHandler)
 
 	// Run server
 	fmt.Println("Run:", viper.GetString("addr"))
-	if err := http.ListenAndServe(viper.GetString("addr"), nil); err != nil {
+	if viper.GetBool("ssl") {
+		err = http.ListenAndServeTLS(viper.GetString("addr"), viper.GetString("sslCrt"), viper.GetString("sslKey"), nil)
+	} else {
+		err = http.ListenAndServe(viper.GetString("addr"), nil)
+	}
+
+	if err != nil {
 		panic(err)
 	}
 }
@@ -48,6 +80,7 @@ func initViper() error {
 	viper.SetDefault("dir", filepath.Dir(ex))
 	viper.SetDefault("secret", "")
 	viper.SetDefault("websocketPort", "3000")
+	viper.SetDefault("ssl", false)
 
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("$HOME/.urepairpc")
@@ -79,7 +112,8 @@ func githubEventHandler(w http.ResponseWriter, r *http.Request) {
 
 	case github.PullRequestPayload:
 		pullRequest := payload.(github.PullRequestPayload)
-		if pullRequest.Action == "closed" && pullRequest.PullRequest.Merged {
+		if pullRequest.Action == "closed" && pullRequest.PullRequest.Merged &&
+			pullRequest.PullRequest.Base.Ref == pullRequest.Repository.DefaultBranch {
 			go pullRequestMerged(&pullRequest)
 			w.Write([]byte("merged"))
 			return
@@ -111,14 +145,14 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 	}
 
 	switch pullRequest.Repository.Name {
-	case "web":
-		handleWebRep("web")
+	case RepWeb:
+		handleWebRep()
 		break
-	case "server":
-		handleServerRep("server")
+	case RepServer:
+		handleServerRep()
 		break
-	case "websocket":
-		handleWebsocketRep("server")
+	case RepWebsocket:
+		handleWebsocketRep()
 		break
 	default:
 		fmt.Println("[Handle Repository] Not Supported:", pullRequest.Repository.Name)
@@ -126,27 +160,33 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 }
 
 // uRepairPC - Web
-func handleWebRep(name string) {
-	runCmd(name, "npm", "ci")
-	runCmd(name, "npm", "run", "build")
+func handleWebRep() {
+	redisPublishStatus(RepWeb, true)
+	runCmd(RepWeb, "npm", "ci")
+	runCmd(RepWeb, "npm", "run", "build")
+	redisPublishStatus(RepWeb, false)
 }
 
 // uRepairPC - Websocket
-func handleWebsocketRep(name string) {
-	runCmd(name, "fuser", "-k", viper.GetString("websocketPort")+"/tcp")
-	runCmd(name, "npm", "ci")
-	runCmd(name, "npm", "run", "build")
-	runCmd(name, "npm", "run", "prod")
+func handleWebsocketRep() {
+	redisPublishStatus(RepWebsocket, true)
+	runCmd(RepWebsocket, "fuser", "-k", viper.GetString("websocketPort")+"/tcp")
+	runCmd(RepWebsocket, "npm", "ci")
+	runCmd(RepWebsocket, "npm", "run", "build")
+	runCmd(RepWebsocket, "npm", "run", "prod")
+	// redis false on reconnect to the websocket
 }
 
 // uRepairPC - Server
-func handleServerRep(name string) {
-	runCmd(name, "composer", "install", "--optimize-autoloader", "--no-dev")
-	runCmd(name, "php", "artisan", "cache:clear")
-	runCmd(name, "php", "artisan", "config:clear")
-	runCmd(name, "php", "artisan", "migrate:refresh", "--force")
-	runCmd(name, "php", "artisan", "db:seed", "--force")
-	runCmd(name, "php", "artisan", "config:cache")
+func handleServerRep() {
+	redisPublishStatus(RepServer, true)
+	runCmd(RepServer, "composer", "install", "--optimize-autoloader")
+	runCmd(RepServer, "php", "artisan", "cache:clear")
+	runCmd(RepServer, "php", "artisan", "config:clear")
+	runCmd(RepServer, "php", "artisan", "migrate:refresh", "--force")
+	runCmd(RepServer, "php", "artisan", "db:seed", "--force")
+	runCmd(RepServer, "php", "artisan", "config:cache")
+	redisPublishStatus(RepServer, false)
 }
 
 // Helper function for console command
@@ -160,4 +200,16 @@ func runCmd(repositoryName string, commands ...string) bool {
 	}
 
 	return true
+}
+
+func redisPublishStatus(repositoryName string, process bool) {
+	data, _ := json.Marshal(map[string]interface{}{
+		"event": "autodeploy.status",
+		"data": map[string]interface{}{
+			"name":    repositoryName,
+			"process": process,
+		},
+	})
+
+	redisClient.Publish(RedisChannel+"."+repositoryName, data)
 }
