@@ -204,9 +204,11 @@ func runCmd(repositoryName string, commands ...string) bool {
 
 func redisPublishStatus(repositoryName string, process bool) {
 	data, _ := json.Marshal(map[string]interface{}{
-		"event":   "autodeploy.status",
-		"name":    repositoryName,
-		"process": process,
+		"event": "autodeploy.status",
+		"data": map[string]interface{}{
+			"name":    repositoryName,
+			"process": process,
+		},
 	})
 
 	redisClient.Publish(RedisChannel+"."+repositoryName, data)
