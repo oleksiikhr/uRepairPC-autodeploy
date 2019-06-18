@@ -158,6 +158,7 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 		break
 	case RepDocs:
 		handleDocsRep()
+		break
 	default:
 		fmt.Println("[Handle Repository] Not Supported:", pullRequest.Repository.Name)
 	}
