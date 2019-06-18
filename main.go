@@ -1,17 +1,32 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/spf13/viper"
-	"gopkg.in/go-playground/webhooks.v5/github"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/go-redis/redis"
+	"github.com/robfig/cron"
+	"github.com/spf13/viper"
+	"gopkg.in/go-playground/webhooks.v5/github"
 )
 
-var hook *github.Webhook
+const (
+	RedisChannel = "autodeploy"
+	RepWebsocket = "websocket"
+	RepServer    = "server"
+	RepWeb       = "web"
+	RepDocs      = "docs"
+)
+
+var (
+	redisClient *redis.Client
+	hook        *github.Webhook
+)
 
 func main() {
 	// Init Viper - Get data from the file
@@ -26,12 +41,30 @@ func main() {
 		panic(err)
 	}
 
+	// Cron
+	c := cron.New()
+	c.AddFunc(viper.GetString("refresh"), func() {
+		// Clear all data every xx hours (DB, other)
+		fmt.Println("[CRON] refresh server")
+		handleServerRep()
+	})
+	c.Start()
+
+	// Redis
+	redisClient = redis.NewClient(&redis.Options{})
+
 	// Route
 	http.HandleFunc("/", githubEventHandler)
 
 	// Run server
 	fmt.Println("Run:", viper.GetString("addr"))
-	if err := http.ListenAndServe(viper.GetString("addr"), nil); err != nil {
+	if viper.GetBool("ssl") {
+		err = http.ListenAndServeTLS(viper.GetString("addr"), viper.GetString("sslCrt"), viper.GetString("sslKey"), nil)
+	} else {
+		err = http.ListenAndServe(viper.GetString("addr"), nil)
+	}
+
+	if err != nil {
 		panic(err)
 	}
 }
@@ -48,6 +81,8 @@ func initViper() error {
 	viper.SetDefault("dir", filepath.Dir(ex))
 	viper.SetDefault("secret", "")
 	viper.SetDefault("websocketPort", "3000")
+	viper.SetDefault("ssl", false)
+	viper.SetDefault("refresh", "@every 16h")
 
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("$HOME/.urepairpc")
@@ -79,7 +114,8 @@ func githubEventHandler(w http.ResponseWriter, r *http.Request) {
 
 	case github.PullRequestPayload:
 		pullRequest := payload.(github.PullRequestPayload)
-		if pullRequest.Action == "closed" && pullRequest.PullRequest.Merged {
+		if pullRequest.Action == "closed" && pullRequest.PullRequest.Merged &&
+			pullRequest.PullRequest.Base.Ref == pullRequest.Repository.DefaultBranch {
 			go pullRequestMerged(&pullRequest)
 			w.Write([]byte("merged"))
 			return
@@ -94,31 +130,34 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 	var cmd *exec.Cmd
 	if _, err := os.Stat(viper.GetString("dir") + "/" + pullRequest.Repository.Name); os.IsNotExist(err) {
 		// Repository not exists? - Clone
-		fmt.Println("[" + pullRequest.Repository.Name + "] Clone..")
+		log(pullRequest.Repository.Name, "git clone")
 		cmd = exec.Command("git", "clone", pullRequest.Repository.CloneURL)
 		cmd.Dir = viper.GetString("dir")
 	} else {
 		// Repository exists? - Pull from origin master with force flag
-		fmt.Println("[" + pullRequest.Repository.Name + "] Pull..")
+		log(pullRequest.Repository.Name, "pull origin master -f")
 		cmd = exec.Command("git", "pull", "origin", "master", "-f")
 		cmd.Dir = viper.GetString("dir") + "/" + pullRequest.Repository.Name
 	}
 
 	// Execute command
 	if err := cmd.Run(); err != nil {
-		fmt.Println("[Clone/Pull Repository]", err)
+		log(pullRequest.Repository.Name, err)
 		return
 	}
 
 	switch pullRequest.Repository.Name {
-	case "web":
+	case RepWeb:
 		handleWebRep()
 		break
-	case "server":
+	case RepServer:
 		handleServerRep()
 		break
-	case "websocket":
+	case RepWebsocket:
 		handleWebsocketRep()
+		break
+	case RepDocs:
+		handleDocsRep()
 		break
 	default:
 		fmt.Println("[Handle Repository] Not Supported:", pullRequest.Repository.Name)
@@ -127,37 +166,69 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 
 // uRepairPC - Web
 func handleWebRep() {
-	runCmd("web", "npm", "ci")
-	runCmd("web", "npm", "run", "build")
+	redisPublishStatus(RepWeb, true)
+	runCmd(RepWeb, "npm", "ci")
+	runCmd(RepWeb, "npm", "run", "build")
+	redisPublishStatus(RepWeb, false)
+	log(RepWeb, "Complete")
 }
 
 // uRepairPC - Websocket
 func handleWebsocketRep() {
-	runCmd("websocket", "fuser", "-k", viper.GetString("websocketPort")+"/tcp")
-	runCmd("websocket", "npm", "ci")
-	runCmd("websocket", "npm", "run", "build")
-	runCmd("websocket", "npm", "run", "prod")
+	redisPublishStatus(RepWebsocket, true)
+	runCmd(RepWebsocket, "fuser", "-k", viper.GetString("websocketPort")+"/tcp")
+	runCmd(RepWebsocket, "npm", "ci")
+	runCmd(RepWebsocket, "npm", "run", "build")
+	runCmd(RepWebsocket, "npm", "run", "prod")
+	// redis false on reconnect to the websocket
 }
 
 // uRepairPC - Server
 func handleServerRep() {
-	runCmd("server", "composer", "install", "--optimize-autoloader", "--no-dev")
-	runCmd("server", "php", "artisan", "cache:clear")
-	runCmd("server", "php", "artisan", "config:clear")
-	runCmd("server", "php", "artisan", "migrate:refresh", "--force")
-	runCmd("server", "php", "artisan", "db:seed", "--force")
-	runCmd("server", "php", "artisan", "config:cache")
+	redisPublishStatus(RepServer, true)
+	runCmd(RepServer, "composer", "install", "--optimize-autoloader")
+	runCmd(RepServer, "php", "artisan", "cache:clear")
+	runCmd(RepServer, "php", "artisan", "config:clear")
+	runCmd(RepServer, "php", "artisan", "migrate:refresh", "--force")
+	runCmd(RepServer, "php", "artisan", "db:seed", "--force")
+	runCmd(RepServer, "php", "artisan", "config:cache")
+	redisPublishStatus(RepServer, false)
+	log(RepServer, "Complete")
+}
+
+// uRepairPC - Docs
+func handleDocsRep() {
+	runCmd(RepDocs, "npm", "ci")
+	runCmd(RepDocs, "npm", "run", "build:docs")
+	log(RepDocs, "Complete")
 }
 
 // Helper function for console command
+// Run only in folder in the project
 func runCmd(repositoryName string, commands ...string) bool {
-	fmt.Println(strings.Join(commands, " "))
+	log(repositoryName, strings.Join(commands, " "))
 	cmd := exec.Command(commands[0], commands[1:]...)
 	cmd.Dir = viper.GetString("dir") + "/" + repositoryName
 	if err := cmd.Run(); err != nil {
-		fmt.Println("["+repositoryName+"]", err)
+		log(repositoryName, err)
 		return false
 	}
 
 	return true
+}
+
+func redisPublishStatus(repositoryName string, process bool) {
+	data, _ := json.Marshal(map[string]interface{}{
+		"event": "autodeploy.status",
+		"data": map[string]interface{}{
+			"name":    repositoryName,
+			"process": process,
+		},
+	})
+
+	redisClient.Publish(RedisChannel+"."+repositoryName, data)
+}
+
+func log(repositoryName string, text interface{}) {
+	fmt.Println("["+repositoryName+"]", text)
 }
