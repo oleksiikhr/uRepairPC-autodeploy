@@ -14,7 +14,7 @@
 </p>
 
 ## Docs
-See [here](https://urepairpc.github.io/docs/)
+See [here](https://docs.urepairpc.com/)
 
 ## Introducing
 After successfully accepted **Pull Request** in **Github** on one of the ecosystem systems -
