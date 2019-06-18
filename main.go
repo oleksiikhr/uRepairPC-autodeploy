@@ -42,8 +42,8 @@ func main() {
 
 	// Cron
 	c := cron.New()
-	c.AddFunc("@every 6h", func() {
-		// Clear all data every 6 hours (DB, other)
+	c.AddFunc(viper.GetString("refresh"), func() {
+		// Clear all data every xx hours (DB, other)
 		fmt.Println("[CRON] refresh server")
 		handleServerRep()
 	})
@@ -81,6 +81,7 @@ func initViper() error {
 	viper.SetDefault("secret", "")
 	viper.SetDefault("websocketPort", "3000")
 	viper.SetDefault("ssl", false)
+	viper.SetDefault("refresh", "@every 16h")
 
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("$HOME/.urepairpc")
