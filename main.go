@@ -20,6 +20,7 @@ const (
 	RepWebsocket = "websocket"
 	RepServer    = "server"
 	RepWeb       = "web"
+	RepDocs      = "docs"
 )
 
 var (
@@ -155,6 +156,8 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 	case RepWebsocket:
 		handleWebsocketRep()
 		break
+	case RepDocs:
+		handleDocsRep()
 	default:
 		fmt.Println("[Handle Repository] Not Supported:", pullRequest.Repository.Name)
 	}
@@ -188,6 +191,12 @@ func handleServerRep() {
 	runCmd(RepServer, "php", "artisan", "db:seed", "--force")
 	runCmd(RepServer, "php", "artisan", "config:cache")
 	redisPublishStatus(RepServer, false)
+}
+
+// uRepairPC - Docs
+func handleDocsRep() {
+	runCmd(RepDocs, "npm", "ci")
+	runCmd(RepDocs, "npm", "run", "build:docs")
 }
 
 // Helper function for console command
