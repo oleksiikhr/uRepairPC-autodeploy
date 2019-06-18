@@ -5,5 +5,6 @@
   "sslCrt": "",
   "sslKey": "",
   "dir": "",
-  "websocketPort": "3000"
+  "websocketPort": "3000",
+  "refresh": "@every 16h"
 }
