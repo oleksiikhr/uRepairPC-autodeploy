@@ -130,19 +130,19 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 	var cmd *exec.Cmd
 	if _, err := os.Stat(viper.GetString("dir") + "/" + pullRequest.Repository.Name); os.IsNotExist(err) {
 		// Repository not exists? - Clone
-		fmt.Println("[" + pullRequest.Repository.Name + "] Clone..")
+		log(pullRequest.Repository.Name, "git clone")
 		cmd = exec.Command("git", "clone", pullRequest.Repository.CloneURL)
 		cmd.Dir = viper.GetString("dir")
 	} else {
 		// Repository exists? - Pull from origin master with force flag
-		fmt.Println("[" + pullRequest.Repository.Name + "] Pull..")
+		log(pullRequest.Repository.Name, "pull origin master -f")
 		cmd = exec.Command("git", "pull", "origin", "master", "-f")
 		cmd.Dir = viper.GetString("dir") + "/" + pullRequest.Repository.Name
 	}
 
 	// Execute command
 	if err := cmd.Run(); err != nil {
-		fmt.Println("[Clone/Pull Repository]", err)
+		log(pullRequest.Repository.Name, err)
 		return
 	}
 
@@ -169,6 +169,7 @@ func handleWebRep() {
 	runCmd(RepWeb, "npm", "ci")
 	runCmd(RepWeb, "npm", "run", "build")
 	redisPublishStatus(RepWeb, false)
+	log(RepWeb, "Complete")
 }
 
 // uRepairPC - Websocket
@@ -191,6 +192,14 @@ func handleServerRep() {
 	runCmd(RepServer, "php", "artisan", "db:seed", "--force")
 	runCmd(RepServer, "php", "artisan", "config:cache")
 	redisPublishStatus(RepServer, false)
+	log(RepServer, "Complete")
+}
+
+// uRepairPC - Docs
+func handleDocsRep() {
+	runCmd(RepDocs, "npm", "ci")
+	runCmd(RepDocs, "npm", "run", "build:docs")
+	log(RepDocs, "Complete")
 }
 
 // uRepairPC - Docs
@@ -200,12 +209,13 @@ func handleDocsRep() {
 }
 
 // Helper function for console command
+// Run only in folder in the project
 func runCmd(repositoryName string, commands ...string) bool {
-	fmt.Println(strings.Join(commands, " "))
+	log(repositoryName, strings.Join(commands, " "))
 	cmd := exec.Command(commands[0], commands[1:]...)
 	cmd.Dir = viper.GetString("dir") + "/" + repositoryName
 	if err := cmd.Run(); err != nil {
-		fmt.Println("["+repositoryName+"]", err)
+		log(repositoryName, err)
 		return false
 	}
 
@@ -222,4 +232,8 @@ func redisPublishStatus(repositoryName string, process bool) {
 	})
 
 	redisClient.Publish(RedisChannel+"."+repositoryName, data)
+}
+
+func log(repositoryName string, text interface{}) {
+	fmt.Println("["+repositoryName+"]", text)
 }
