@@ -186,12 +186,24 @@ func handleWebsocketRep() {
 // uRepairPC - Server
 func handleServerRep() {
 	redisPublishStatus(RepServer, true)
+
+	// Remove all files
+	storageDir := viper.GetString("dir") + "/" + RepServer + "/storage/app/"
+	runCmd(RepServer, "rm", "-rf", storageDir+"requests/")
+	runCmd(RepServer, "rm", "-rf", storageDir+"equipments/")
+	runCmd(RepServer, "rm", "-rf", storageDir+"users/")
+	runCmd(RepServer, "rm", "-rf", storageDir+"public/global/")
+	runCmd(RepServer, "rm", "-f", storageDir+"manifest.json")
+	runCmd(RepServer, "rm", "-f", storageDir+"settings.json")
+
+	// Install dependencies. Refresh DB.
 	runCmd(RepServer, "composer", "install", "--optimize-autoloader")
 	runCmd(RepServer, "php", "artisan", "cache:clear")
 	runCmd(RepServer, "php", "artisan", "config:clear")
 	runCmd(RepServer, "php", "artisan", "migrate:refresh", "--force")
 	runCmd(RepServer, "php", "artisan", "db:seed", "--force")
 	runCmd(RepServer, "php", "artisan", "config:cache")
+
 	redisPublishStatus(RepServer, false)
 	log(RepServer, "Complete")
 }
