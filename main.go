@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/go-redis/redis"
 	"github.com/robfig/cron"
@@ -45,6 +46,7 @@ func main() {
 	c := cron.New()
 	c.AddFunc(viper.GetString("refresh"), func() {
 		// Clear all data every xx hours (DB, other)
+		log("", "Cron: refresh server")
 		fmt.Println("[CRON] refresh server")
 		handleServerRep()
 	})
@@ -57,7 +59,7 @@ func main() {
 	http.HandleFunc("/", githubEventHandler)
 
 	// Run server
-	fmt.Println("Run:", viper.GetString("addr"))
+	log("", "Run:", viper.GetString("addr"))
 	if viper.GetBool("ssl") {
 		err = http.ListenAndServeTLS(viper.GetString("addr"), viper.GetString("sslCrt"), viper.GetString("sslKey"), nil)
 	} else {
@@ -100,7 +102,7 @@ func githubEventHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == github.ErrHMACVerificationFailed || err == github.ErrEventNotFound || err == github.ErrInvalidHTTPMethod ||
 			err == github.ErrParsingPayload || err == github.ErrMissingHubSignatureHeader || err == github.ErrEventNotSpecifiedToParse {
-			fmt.Println("[Event Handler]", err)
+			log("", "Event Handler: ", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -160,7 +162,7 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 		handleDocsRep()
 		break
 	default:
-		fmt.Println("[Handle Repository] Not Supported:", pullRequest.Repository.Name)
+		log("", "Handle Repository:", pullRequest.Repository.Name, "not supported")
 	}
 }
 
@@ -241,6 +243,11 @@ func redisPublishStatus(repositoryName string, process bool) {
 	redisClient.Publish(RedisChannel+"."+repositoryName, data)
 }
 
-func log(repositoryName string, text interface{}) {
-	fmt.Println("["+repositoryName+"]", text)
+func log(repositoryName string, message ...interface{}) {
+	if repositoryName == "" {
+		repositoryName = "none"
+	}
+
+	t := time.Now().Format("01/02/06 15:04")
+	fmt.Println("["+t+", "+repositoryName+"] -", message)
 }
