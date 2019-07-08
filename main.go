@@ -102,7 +102,7 @@ func githubEventHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == github.ErrHMACVerificationFailed || err == github.ErrEventNotFound || err == github.ErrInvalidHTTPMethod ||
 			err == github.ErrParsingPayload || err == github.ErrMissingHubSignatureHeader || err == github.ErrEventNotSpecifiedToParse {
-			log("-", "Event Handler: ", err)
+			log("", "Event Handler: ", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
