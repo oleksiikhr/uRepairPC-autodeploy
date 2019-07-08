@@ -231,7 +231,7 @@ func runCmd(repositoryName string, commands ...string) bool {
 
 func redisPublishStatus(repositoryName string, process bool) {
 	data, _ := json.Marshal(map[string]interface{}{
-		"event": "autodeploy.status",
+		"event": "status",
 		"data": map[string]interface{}{
 			"name":    repositoryName,
 			"process": process,
