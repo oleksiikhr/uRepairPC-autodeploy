@@ -47,7 +47,6 @@ func main() {
 	c.AddFunc(viper.GetString("refresh"), func() {
 		// Clear all data every xx hours (DB, other)
 		log("", "Cron: refresh server")
-		fmt.Println("[CRON] refresh server")
 		handleServerRep()
 	})
 	c.Start()
@@ -244,10 +243,14 @@ func redisPublishStatus(repositoryName string, process bool) {
 }
 
 func log(repositoryName string, message ...interface{}) {
+	t := time.Now().Format("01/02/06 15:04")
+
 	if repositoryName == "" {
-		repositoryName = "none"
+		fmt.Printf("[%s] ", t)
+	} else {
+		fmt.Printf("[%s, %s] ", t, repositoryName)
 	}
 
-	t := time.Now().Format("01/02/06 15:04")
-	fmt.Println("["+t+", "+repositoryName+"] -", message)
+	fmt.Print(message...)
+	fmt.Println()
 }
