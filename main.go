@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	"github.com/uRepairPC/autodeploy/pkg/config"
 	"github.com/uRepairPC/autodeploy/pkg/logger"
 	"github.com/uRepairPC/autodeploy/pkg/telegram"
@@ -70,7 +70,7 @@ func runCron() error {
 
 	// Clear all data every xx hours (DB, other)
 	if config.Data.Destroy != "" {
-		err := c.AddFunc(config.Data.Destroy, func() {
+		_, err := c.AddFunc(config.Data.Destroy, func() {
 			logger.Info("destroy server by cron")
 			handleMainRep()
 		})
@@ -78,8 +78,6 @@ func runCron() error {
 			return err
 		}
 	}
-
-	// TODO Watch and run systems (redis, mysqld, etc)
 
 	c.Start()
 	return nil
