@@ -1,0 +1,17 @@
+{
+  "name": "@urepairpc/autodeploy",
+  "version": "1.0.0",
+  "scripts": {
+    "release": "standard-version"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uRepairPC/autodeploy.git"
+  },
+  "author": "Alexey Khrushch <alexeykhr@outlook.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/uRepairPC/autodeploy/issues"
+  },
+  "homepage": "https://github.com/uRepairPC/autodeploy#readme"
+}

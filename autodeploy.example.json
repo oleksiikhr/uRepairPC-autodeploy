@@ -1,0 +1,27 @@
+{
+  "secret": "",
+  "addr": "0.0.0.0:4000",
+  "websocketPort": 3000,
+  "destroy": "@every 16h",
+  "repositories": {
+    "main": {
+      "name": "urepairpc",
+      "branch": "preview",
+      "path": ""
+    },
+    "docs": {
+      "name": "docs",
+      "branch": "master",
+      "path": ""
+    }
+  },
+  "ssl": {
+    "enable": false,
+    "crt": "",
+    "key": ""
+  },
+  "telegram": {
+    "enable": false,
+    "access_token": ""
+  }
+}
