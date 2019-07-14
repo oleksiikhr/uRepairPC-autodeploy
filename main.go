@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/robfig/cron"
-	"github.com/uRepairPC/autodeploy/config"
-	"github.com/uRepairPC/autodeploy/logger"
-	"github.com/uRepairPC/autodeploy/telegram"
+	"github.com/uRepairPC/autodeploy/pkg/config"
+	"github.com/uRepairPC/autodeploy/pkg/logger"
+	"github.com/uRepairPC/autodeploy/pkg/telegram"
 	"gopkg.in/go-playground/webhooks.v5/github"
 )
 
@@ -98,20 +98,20 @@ func githubEventHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch payload.(type) {
 	case github.PingPayload:
-		w.Write([]byte("pong"))
+		_, _ = w.Write([]byte("pong"))
 		return
 
 	case github.PullRequestPayload:
 		pullRequest := payload.(github.PullRequestPayload)
 		if pullRequest.Action == "closed" && pullRequest.PullRequest.Merged {
 			go pullRequestMerged(&pullRequest)
-			w.Write([]byte("merged"))
+			_, _ = w.Write([]byte("merged"))
 			return
 		}
 		break
 	}
 
-	w.Write([]byte("ok"))
+	_, _ = w.Write([]byte("ok"))
 }
 
 func pullRequestMerged(pullRequest *github.PullRequestPayload) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/uRepairPC/autodeploy/config"
+	"github.com/uRepairPC/autodeploy/pkg/config"
 )
 
 var bot *tgbotapi.BotAPI
