@@ -1,17 +1,17 @@
 # uRepairPC - Autodeploy
 
 <p align="center">
-    <a href="https://github.com/uRepairPC">
-        <img width="500" src="https://raw.githubusercontent.com/uRepairPC/docs/master/public/logo-left-icon.png" alt="uRepairPC">
-    </a>
+  <a href="https://github.com/uRepairPC">
+    <img width="500" src="https://raw.githubusercontent.com/uRepairPC/docs/master/public/logo-left-icon.png" alt="uRepairPC">
+  </a>
 </p>
 <p align="center">
-    Accounting system for orders for the repair of technical means.
+  Accounting system for orders for the repair of technical means.
 </p>
 
 <p align="center">
 	<a href="https://github.com/uRepairPC/autodeploy" rel="nofollow"><img src="https://img.shields.io/github/license/urepairpc/autodeploy.svg" alt="License"></a>
-    <a href="https://github.com/uRepairPC/autodeploy" rel="nofollow"><img src="https://img.shields.io/github/package-json/v/urepairpc/autodeploy.svg" alt="Version"></a>
+  <a href="https://github.com/uRepairPC/autodeploy" rel="nofollow"><img src="https://img.shields.io/github/package-json/v/urepairpc/autodeploy.svg" alt="Version"></a>
 </p>
 
 ## Links
@@ -24,17 +24,17 @@ After successfully accepted **Pull Request** in **Github** on one of the ecosyst
 the demo version of the site is automatically updated.
 
 ## Ecosystem
-| Project | Status | Description |
-|---------|--------|-------------|
-| [urepairpc-urepairpc]  | ![urepairpc-urepairpc-status]  | Full Build Project |
-| [urepairpc-server]     | ![urepairpc-server-status]     | Backend on PHP (Laravel) |
-| [urepairpc-web]        | ![urepairpc-web-status]        | Frontend on Javascript (Vue) |
-| [urepairpc-websocket]  | ![urepairpc-websocket-status]  | WebSocket on Typescript (Node) |
-| [urepairpc-autodeploy] | ![urepairpc-autodeploy-status] | Autodeploy on Golang for Demo website |
-| [urepairpc-release]    | ![urepairpc-release-status]    | Build project for production on Typescript |
-| [urepairpc-daemon]     | ![urepairpc-daemon-status]     | Service for Windows on C# |
-| [urepairpc-landing]    | ![urepairpc-landing-status]    | Project Information on HTML |
-| [urepairpc-docs]       | ![urepairpc-docs-status]       | Documentation on Javascript (Vuepress) |
+| Project | Status | Language | Description |
+|---------|--------|----------|-------------|
+| [urepairpc-urepairpc]  | ![urepairpc-urepairpc-status]  | -                     | Full Build Project |
+| [urepairpc-server]     | ![urepairpc-server-status]     | PHP (Laravel)         | Backend |
+| [urepairpc-web]        | ![urepairpc-web-status]        | Javascript (Vue)      | Frontend |
+| [urepairpc-websocket]  | ![urepairpc-websocket-status]  | Javascript (Node)     | WebSocket for Real-Time |
+| [urepairpc-autodeploy] | ![urepairpc-autodeploy-status] | Go                    | Autodeploy for Demo website |
+| [urepairpc-release]    | ![urepairpc-release-status]    | Typescript (Node)     | Build project for Production |
+| [urepairpc-daemon]     | ![urepairpc-daemon-status]     | C#                    | Service for Windows |
+| [urepairpc-landing]    | ![urepairpc-landing-status]    | HTML                  | Project Information |
+| [urepairpc-docs]       | ![urepairpc-docs-status]       | Javascript (Vuepress) | Documentation (Vuepress) |
 
 [urepairpc-urepairpc]: https://github.com/uRepairPC/urepairpc
 [urepairpc-urepairpc-status]: https://img.shields.io/github/release/urepairpc/urepairpc.svg
@@ -62,6 +62,9 @@ the demo version of the site is automatically updated.
 
 [urepairpc-docs]: https://github.com/uRepairPC/docs
 [urepairpc-docs-status]: https://img.shields.io/github/package-json/v/urepairpc/docs.svg
+
+## Changelog
+Detailed changes for each release are documented in the [CHANGELOG.md](https://github.com/uRepairPC/autodeploy/blob/master/CHANGELOG.md).
 
 ## License
 [MIT](https://opensource.org/licenses/MIT)

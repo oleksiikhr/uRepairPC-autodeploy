@@ -103,7 +103,7 @@ func githubEventHandler(w http.ResponseWriter, r *http.Request) {
 		pullRequest := payload.(github.PullRequestPayload)
 		if pullRequest.Action == "closed" && pullRequest.PullRequest.Merged {
 			go pullRequestMerged(&pullRequest)
-			_, _ = w.Write([]byte("merged"))
+			_, _ = w.Write([]byte("accepted"))
 			return
 		}
 		break
