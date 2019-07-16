@@ -3,8 +3,8 @@ package telegram
 import (
 	"fmt"
 
-	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/uRepairPC/autodeploy/pkg/config"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/urepairpc/autodeploy/pkg/config"
 )
 
 var bot *tgbotapi.BotAPI

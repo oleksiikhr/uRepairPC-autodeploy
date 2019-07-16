@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/robfig/cron/v3"
-	"github.com/uRepairPC/autodeploy/pkg/config"
-	"github.com/uRepairPC/autodeploy/pkg/logger"
-	"github.com/uRepairPC/autodeploy/pkg/telegram"
+	"github.com/urepairpc/autodeploy/pkg/config"
+	"github.com/urepairpc/autodeploy/pkg/logger"
+	"github.com/urepairpc/autodeploy/pkg/telegram"
 	"gopkg.in/go-playground/webhooks.v5/github"
 )
 

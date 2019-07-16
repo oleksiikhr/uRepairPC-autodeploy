@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/uRepairPC/autodeploy/pkg/telegram"
+	"github.com/urepairpc/autodeploy/pkg/telegram"
 )
 
 func Info(message string) {
