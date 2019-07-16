@@ -131,7 +131,7 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 	}
 }
 
-// uRepairPC/urepairpc
+// uRepairPC/uRepairPC
 func handleMainRep() {
 	rep := &config.Data.Repositories.Main
 	redisPublishStatus(rep, true)

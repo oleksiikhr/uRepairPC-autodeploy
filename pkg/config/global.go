@@ -2,29 +2,34 @@ package config
 
 import "github.com/spf13/viper"
 
+// Ssl on "enable" is true, run the server on https
 type Ssl struct {
 	Enable bool
 	Crt    string
 	Key    string
 }
 
+// Telegram on "enable" is true - send message logs for user in Telegram
 type Telegram struct {
 	Enable      bool
 	AccessToken string
-	UserId      int64
+	UserID      int64
 }
 
+// Repository this data from org/rep
 type Repository struct {
 	Name   string
 	Branch string
 	Path   string
 }
 
+// Repositories this data from organization
 type Repositories struct {
 	Main Repository
 	Docs Repository
 }
 
+// Config for the application
 type Config struct {
 	Secret        string // Github hook
 	Addr          string // Run app
@@ -36,12 +41,17 @@ type Config struct {
 }
 
 const (
-	RedisChannel  = "autodeploy"
+	// RedisChannel - name of a channel for publishing the message to Redis
+	RedisChannel = "autodeploy"
+
+	// RepAutodeploy - name the repository on github.com
 	RepAutodeploy = "autodeploy"
 )
 
+// Data - collected from the config file/.env/default
 var Data *Config
 
+// LoadConfig collects data and writes to variable
 func LoadConfig() {
 	viper.SetConfigName(RepAutodeploy)
 	viper.SetEnvPrefix(RepAutodeploy)
@@ -72,7 +82,7 @@ func LoadConfig() {
 		Telegram: Telegram{
 			Enable:      viper.GetBool("telegram.enable"),
 			AccessToken: viper.GetString("telegram.access_token"),
-			UserId:      viper.GetInt64("telegram.user_id"),
+			UserID:      viper.GetInt64("telegram.user_id"),
 		},
 		Repositories: Repositories{
 			Main: Repository{
