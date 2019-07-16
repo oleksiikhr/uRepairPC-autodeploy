@@ -137,7 +137,7 @@ func handleMainRep() {
 	redisPublishStatus(rep, true)
 
 	// Stop Websocket server
-	cmd(rep, "fuser", "-k", config.Data.WebsocketPort+"/tcp") // TODO get data from API/.env (server)?
+	cmd(rep, "fuser", "-k", config.Data.WebsocketPort+"/tcp")
 
 	// Update files from Github
 	cmd(rep, "git", "pull", "origin", rep.Branch, "-f")
