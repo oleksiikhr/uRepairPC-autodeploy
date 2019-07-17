@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-	<a href="https://github.com/uRepairPC/autodeploy" rel="nofollow"><img src="https://img.shields.io/github/license/urepairpc/autodeploy.svg" alt="License"></a>
+  <a href="https://github.com/uRepairPC/autodeploy" rel="nofollow"><img src="https://img.shields.io/github/license/urepairpc/autodeploy.svg" alt="License"></a>
   <a href="https://github.com/uRepairPC/autodeploy" rel="nofollow"><img src="https://img.shields.io/github/package-json/v/urepairpc/autodeploy.svg" alt="Version"></a>
 </p>
 
