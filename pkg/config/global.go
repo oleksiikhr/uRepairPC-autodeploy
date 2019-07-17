@@ -25,8 +25,9 @@ type Repository struct {
 
 // Repositories this data from organization
 type Repositories struct {
-	Main Repository
-	Docs Repository
+	Main      Repository
+	Docs      Repository
+	Websocket Repository
 }
 
 // Config for the application
@@ -94,6 +95,11 @@ func LoadConfig() {
 				Name:   viper.GetString("repositories.docs.name"),
 				Branch: viper.GetString("repositories.docs.branch"),
 				Path:   viper.GetString("repositories.docs.path"),
+			},
+			Websocket: Repository{
+				Name:   viper.GetString("repositories.websocket.name"),
+				Branch: viper.GetString("repositories.websocket.branch"),
+				Path:   viper.GetString("repositories.websocket.path"),
 			},
 		},
 	}

@@ -134,10 +134,9 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 // uRepairPC/uRepairPC
 func handleMainRep() {
 	rep := &config.Data.Repositories.Main
-	redisPublishStatus(rep, true)
+	ws := &config.Data.Repositories.Websocket
 
-	// Stop Websocket server
-	cmd(rep, "fuser", "-k", config.Data.WebsocketPort+"/tcp")
+	redisPublishStatus(rep, true)
 
 	// Update files from Github
 	cmd(rep, "git", "pull", "origin", rep.Branch, "-f")
@@ -158,8 +157,10 @@ func handleMainRep() {
 	cmd(rep, "php", "artisan", "db:seed", "--force")
 	cmd(rep, "php", "artisan", "config:cache")
 
-	// Start Websocket
-	cmd(rep, "npm", "run", "websocket")
+	// Stop/Update/Start Websocket server
+	cmd(ws, "fuser", "-k", config.Data.WebsocketPort+"/tcp")
+	cmd(ws, "npm", "ci", "--production")
+	cmd(ws, "npm", "run", "start")
 
 	redisPublishStatus(rep, false)
 	logger.Info(rep.Name + ": Complete")
@@ -187,6 +188,7 @@ func cmd(rep *config.Repository, commands ...string) bool {
 	return true
 }
 
+// Publish status to Redis (Websocket accept)
 func redisPublishStatus(rep *config.Repository, process bool) {
 	data, _ := json.Marshal(map[string]interface{}{
 		"event": "status",

@@ -13,6 +13,11 @@
       "name": "docs",
       "branch": "master",
       "path": ""
+    },
+    "ws": {
+      "name": "websocket",
+      "branch": "-",
+      "path": ""
     }
   },
   "ssl": {
