@@ -4,7 +4,7 @@ import (
   "fmt"
   "time"
 
-  "github.com/urepairpc/autodeploy/pkg/telegram"
+  "github.com/uRepairPC/autodeploy/pkg/telegram"
 )
 
 // Info just notice
