@@ -24,17 +24,17 @@ After successfully accepted **Pull Request** in **Github** on one of the ecosyst
 the demo version of the site is automatically updated.
 
 ## Ecosystem
-| Project | Status | Language | Description |
-|---------|--------|----------|-------------|
-| [urepairpc-urepairpc]  | ![urepairpc-urepairpc-status]  | -                     | Full Build Project |
-| [urepairpc-server]     | ![urepairpc-server-status]     | PHP (Laravel)         | Backend |
-| [urepairpc-web]        | ![urepairpc-web-status]        | Javascript (Vue)      | Frontend |
-| [urepairpc-websocket]  | ![urepairpc-websocket-status]  | Javascript (Node)     | WebSocket for Real-Time |
-| [urepairpc-autodeploy] | ![urepairpc-autodeploy-status] | Go                    | Autodeploy for Demo website |
-| [urepairpc-release]    | ![urepairpc-release-status]    | Typescript (Node)     | Build project for Production |
-| [urepairpc-daemon]     | ![urepairpc-daemon-status]     | C#                    | Service for Windows |
-| [urepairpc-landing]    | ![urepairpc-landing-status]    | HTML                  | Project Information |
-| [urepairpc-docs]       | ![urepairpc-docs-status]       | Javascript (Vuepress) | Documentation (Vuepress) |
+| Project | Status | Description |
+|---------|--------|-------------|
+| [urepairpc-urepairpc]  | ![urepairpc-urepairpc-status]  | Full Build Project |
+| [urepairpc-server]     | ![urepairpc-server-status]     | Backend |
+| [urepairpc-web]        | ![urepairpc-web-status]        | Frontend |
+| [urepairpc-websocket]  | ![urepairpc-websocket-status]  | WebSocket for Real-Time |
+| [urepairpc-autodeploy] | ![urepairpc-autodeploy-status] | Autodeploy for Demo website |
+| [urepairpc-release]    | ![urepairpc-release-status]    | Build project for Production |
+| [urepairpc-daemon]     | ![urepairpc-daemon-status]     | Service for Windows/Linux |
+| [urepairpc-landing]    | ![urepairpc-landing-status]    | Project Information |
+| [urepairpc-docs]       | ![urepairpc-docs-status]       | Documentation (Vuepress) |
 
 [urepairpc-urepairpc]: https://github.com/uRepairPC/urepairpc
 [urepairpc-urepairpc-status]: https://img.shields.io/github/release/urepairpc/urepairpc.svg

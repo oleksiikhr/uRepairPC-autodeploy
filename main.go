@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/robfig/cron/v3"
-	"github.com/urepairpc/autodeploy/pkg/config"
-	"github.com/urepairpc/autodeploy/pkg/logger"
-	"github.com/urepairpc/autodeploy/pkg/telegram"
+	"github.com/uRepairPC/autodeploy/pkg/config"
+	"github.com/uRepairPC/autodeploy/pkg/logger"
+	"github.com/uRepairPC/autodeploy/pkg/telegram"
 	"gopkg.in/go-playground/webhooks.v5/github"
 )
 
@@ -71,7 +71,7 @@ func runCron() error {
 	// Clear all data every xx hours (DB, other)
 	if config.Data.Destroy != "" {
 		_, err := c.AddFunc(config.Data.Destroy, func() {
-			logger.Info("destroy server by cron")
+			logger.Info("Destroy server by cron")
 			handleMainRep()
 		})
 		if err != nil {
