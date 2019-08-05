@@ -94,28 +94,37 @@ func githubEventHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	output := "ok"
+
 	switch payload.(type) {
 	case github.PingPayload:
-		_, _ = w.Write([]byte("pong"))
-		return
+		output = "pong"
+		break
 
 	case github.PullRequestPayload:
-		pullRequest := payload.(github.PullRequestPayload)
-		if pullRequest.Action == "closed" && pullRequest.PullRequest.Merged {
-			go pullRequestMerged(&pullRequest)
-			_, _ = w.Write([]byte("accepted"))
-			return
+		pullRequestPayload := payload.(github.PullRequestPayload)
+		if pullRequestPayload.Action == "closed" && pullRequestPayload.PullRequest.Merged {
+			output = "accepted pullRequest"
+			go pullRequestEvent(&pullRequestPayload)
+		}
+		break
+
+	case github.PushPayload:
+		pushPayload := payload.(github.PushPayload)
+		if !pushPayload.Deleted {
+			output = "accepted push"
+			go pushEvent(&pushPayload)
 		}
 		break
 	}
 
-	_, _ = w.Write([]byte("ok"))
+	w.Write([]byte(output))
 }
 
-func pullRequestMerged(pullRequest *github.PullRequestPayload) {
-	branch := pullRequest.PullRequest.Base.Ref
+func pullRequestEvent(pullRequestPayload *github.PullRequestPayload) {
+	branch := pullRequestPayload.PullRequest.Base.Ref
 
-	switch pullRequest.Repository.Name {
+	switch pullRequestPayload.Repository.Name {
 	case config.Data.Repositories.Main.Name:
 		if config.Data.Repositories.Main.Branch == branch {
 			handleMainRep()
@@ -127,7 +136,24 @@ func pullRequestMerged(pullRequest *github.PullRequestPayload) {
 		}
 		break
 	default:
-		logger.Warning(pullRequest.Repository.Name + " not supported")
+		logger.Warning(pullRequestPayload.Repository.Name + " pullRequestEvent not supported")
+	}
+}
+
+func pushEvent(pushPayload *github.PushPayload) {
+	switch pushPayload.Repository.Name {
+	case config.Data.Repositories.Main.Name:
+		if pushPayload.Ref == "refs/heads/"+config.Data.Repositories.Main.Branch {
+			handleMainRep()
+		}
+		break
+	case config.Data.Repositories.Docs.Name:
+		if pushPayload.Ref == "refs/heads/"+config.Data.Repositories.Docs.Branch {
+			handleDocsRep()
+		}
+		break
+	default:
+		logger.Warning(pushPayload.Repository.Name + " pushEvent not supported")
 	}
 }
 
@@ -149,16 +175,16 @@ func handleMainRep() {
 	cmd(rep, "rm", "-f", rep.Path+"/storage/app/manifest.json")
 	cmd(rep, "rm", "-f", rep.Path+"/storage/app/settings.json")
 
-	// Install dependencies. Refresh DB.
+	// Install dependencies. Refresh DB
 	cmd(rep, "composer", "install", "--optimize-autoloader")
 	cmd(rep, "php", "artisan", "cache:clear")
 	cmd(rep, "php", "artisan", "config:clear")
-	cmd(rep, "php", "artisan", "migrate:refresh", "--force")
+	cmd(rep, "php", "artisan", "migrate:fresh", "--force")
 	cmd(rep, "php", "artisan", "db:seed", "--force")
 	cmd(rep, "php", "artisan", "config:cache")
 
 	// Stop/Update/Start Websocket server
-	cmd(ws, "fuser", "-k", config.Data.WebsocketPort+"/tcp")
+	cmd(ws, "pm2", "delete", "app")
 	cmd(ws, "npm", "ci", "--production")
 	cmd(ws, "npm", "run", "start")
 

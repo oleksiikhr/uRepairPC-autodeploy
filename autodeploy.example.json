@@ -1,11 +1,10 @@
 {
   "secret": "",
   "addr": "0.0.0.0:4000",
-  "websocketPort": 3000,
   "destroy": "@every 16h",
   "repositories": {
     "main": {
-      "name": "urepairpc",
+      "name": "uRepairPC",
       "branch": "preview",
       "path": ""
     },
