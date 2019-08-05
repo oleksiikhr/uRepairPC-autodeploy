@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.5](https://github.com/uRepairPC/autodeploy/compare/v1.0.4...v1.0.5) (2019-08-05)
+
+
+### Bug Fixes
+
+* accept push event ([38c8a99](https://github.com/uRepairPC/autodeploy/commit/38c8a99))
+
+
+
 ### [1.0.4](https://github.com/uRepairPC/autodeploy/compare/v1.0.3...v1.0.4) (2019-08-05)
 
 
