@@ -165,7 +165,7 @@ func handleMainRep() {
 	redisPublishStatus(rep, true)
 
 	// Update files from Github
-	cmd(rep, "git", "pull", "origin", rep.Branch, "-f")
+	cmd(rep, "git", "pull", "origin", rep.Branch, "--allow-unrelated-histories")
 
 	// Remove all user files
 	cmd(rep, "rm", "-rf", rep.Path+"/storage/app/requests/")
