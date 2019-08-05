@@ -84,7 +84,7 @@ func runCron() error {
 }
 
 func githubEventHandler(w http.ResponseWriter, r *http.Request) {
-	payload, err := hook.Parse(r, github.PingEvent, github.PullRequestEvent)
+	payload, err := hook.Parse(r, github.PingEvent, github.PullRequestEvent, github.PushEvent)
 	if err != nil {
 		if err == github.ErrHMACVerificationFailed || err == github.ErrEventNotFound || err == github.ErrInvalidHTTPMethod ||
 			err == github.ErrParsingPayload || err == github.ErrMissingHubSignatureHeader || err == github.ErrEventNotSpecifiedToParse {
